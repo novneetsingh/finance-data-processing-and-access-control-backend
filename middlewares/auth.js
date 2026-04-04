@@ -1,20 +1,27 @@
 import jwt from "jsonwebtoken";
 import ErrorResponse from "../utils/errorResponse.js";
+import User from "../models/User.model.js";
 
 // Auth middleware
-export const auth = (req, res, next) => {
+export const auth = async (req, res, next) => {
   const token = req.header("Authorization")?.replace("Bearer ", "");
 
   if (!token) throw new ErrorResponse("Token missing", 401);
 
-  // Verify the token
-  const decoded = jwt.verify(token, process.env.JWT_SECRET);
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-  if (!decoded) throw new ErrorResponse("Invalid token", 401);
+    const user = await User.findById(decoded.id).select("-password").lean();
 
-  // add decoded token payload to the request object
-  req.user = decoded;
+    if (!user) throw new ErrorResponse("User not found", 401);
+    if (!user.isActive) throw new ErrorResponse("Account is deactivated", 403);
 
-  next();
+    // Attach full user object so controllers can use req.user._id and req.user.accountType
+    req.user = user;
+
+    next();
+  } catch (err) {
+    if (err.statusCode) throw err;
+    throw new ErrorResponse("Invalid or expired token", 401);
+  }
 };
-
