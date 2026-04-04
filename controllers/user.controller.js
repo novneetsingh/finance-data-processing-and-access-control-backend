@@ -29,7 +29,7 @@ export const updateUserRole = async (req, res) => {
   const user = await User.findByIdAndUpdate(
     req.params.id,
     { accountType: role },
-    { new: true },
+    { new: true, runValidators: true },
   )
     .select("-password")
     .lean();
