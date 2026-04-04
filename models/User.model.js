@@ -2,6 +2,11 @@ import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema(
   {
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+    },
     email: {
       type: String,
       unique: true,
@@ -16,8 +21,12 @@ const userSchema = new mongoose.Schema(
     accountType: {
       type: String,
       required: true,
-      enum: ["User", "Admin"],
-      default: "User",
+      enum: ["Viewer", "Analyst", "Admin"],
+      default: "Viewer",
+    },
+    isActive: {
+      type: Boolean,
+      default: true,
     },
   },
   { timestamps: true },
