@@ -5,9 +5,9 @@ import jwt from "jsonwebtoken";
 
 // register a new user
 export const signUp = async (req, res) => {
-  const { email, password } = req.body;
+  const { name, email, password } = req.body;
 
-  if (!email || !password)
+  if (!name || !email || !password)
     throw new ErrorResponse("All fields are required", 400);
 
   // Check if user already exists
@@ -23,18 +23,19 @@ export const signUp = async (req, res) => {
   const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(password, salt);
 
-  // Create the user
+  // Create the user (accountType defaults to "Viewer")
   const user = await User.create({
     name,
     email,
     password: hashedPassword,
-    accountType: req.body.accountType,
   });
 
+  user.password = undefined;
+
   return res.status(201).json({
-    success: user ? true : false,
-    message: user ? "User registered successfully" : "User registration failed",
-    data: user ? user : null,
+    success: true,
+    message: "User registered successfully",
+    data: user,
   });
 };
 
@@ -54,30 +55,28 @@ export const login = async (req, res) => {
       400,
     );
 
+  // Check if account is active
+  if (!user.isActive)
+    throw new ErrorResponse("Your account has been deactivated", 403);
+
   // verify password
   const isPasswordMatch = await bcrypt.compare(password, user.password);
 
   if (!isPasswordMatch) throw new ErrorResponse("Incorrect Password", 400);
 
   // generate JWT token
-  const token = jwt.sign(
-    { id: user._id, accountType: user.accountType },
-    process.env.JWT_SECRET,
-    {
-      expiresIn: "1d",
-    },
-  );
+  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+    expiresIn: "7d",
+  });
 
   user.password = undefined;
 
   return res.status(200).json({
-    success: user ? true : false,
-    message: user ? "User logged in successfully" : "User login failed",
-    data: user
-      ? {
-          user,
-          token,
-        }
-      : null,
+    success: true,
+    message: "User logged in successfully",
+    data: {
+      user,
+      token,
+    },
   });
 };
