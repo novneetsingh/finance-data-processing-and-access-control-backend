@@ -2,6 +2,14 @@
 
 A robust backend REST API for a finance dashboard system. It handles financial records, enforces role-based access control (RBAC), provides analytical dashboard summaries, and manages user accounts.
 
+## Live Demo
+
+https://finance-data-processing-and-access-xc0o.onrender.com
+
+## Postman Documentation
+
+https://documenter.getpostman.com/view/32416134/2sBXiqEUZ3
+
 ## Features
 
 - **User Management & Authentication:** Register, login, and manage users. Uses JWT for secure authentication.
